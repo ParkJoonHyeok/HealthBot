@@ -1,1 +1,26 @@
-{"name":"healbot","version":"0.1.0","private":true,"type":"module","engines":{"node":">=22"},"scripts":{"start":"node src/server.js","dev":"node --watch src/server.js","test":"node --test","check":"node --check src/server.js && node --check public/app.js"}}
+{
+  "name": "healbot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "dev": "node --env-file-if-exists=.env --watch src/server.js",
+    "test": "node --test test/*.test.js",
+    "check": "node --check src/server.js && node --check src/hospitals.js && node --check public/app.js",
+    "test:e2e": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.12.0",
+    "undici": "^8.12.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "prettier": "^3.9.10"
+  }
+}
