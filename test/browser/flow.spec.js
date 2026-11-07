@@ -101,3 +101,38 @@ test("pagination keeps submitted filters and renders provider text safely", asyn
     page.getByRole("button", { name: "이전", exact: true }),
   ).toBeVisible();
 });
+test("rate-limit message preserves emergency guidance and hospital map fallback", async ({
+  page,
+}) => {
+  await page.route("**/api/guide", (route) =>
+    route.fulfill({
+      status: 429,
+      contentType: "application/json",
+      headers: { "Retry-After": "30" },
+      body: JSON.stringify({
+        error: "요청이 많습니다. 30초 후 다시 시도해 주세요.",
+        retryAfter: 30,
+      }),
+    }),
+  );
+  await page.route("**/api/hospitals?*", (route) =>
+    route.fulfill({
+      status: 429,
+      contentType: "application/json",
+      body: JSON.stringify({
+        error: "요청이 많습니다. 30초 후 다시 시도해 주세요.",
+      }),
+    }),
+  );
+  await page.goto("/");
+  await page.locator("#input").fill("기침");
+  await page.getByRole("button", { name: "관련 진료과 확인하기" }).click();
+  await expect(page.locator("#result")).toContainText("30초 후");
+  await expect(page.locator(".warning")).toContainText("119");
+  await page.getByRole("button", { name: "병원 검색하기" }).click();
+  await expect(page.locator("#hospital-result")).toContainText("30초 후");
+  await expect(page.locator("#map-result a")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "병원 검색하기" }),
+  ).toBeEnabled();
+});
