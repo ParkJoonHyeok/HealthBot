@@ -20,14 +20,14 @@
 | SEC-01  | 입력 검증·CSP·안전한 텍스트 렌더링        | 검증 완료                  | 요청 용량 제한, 임의 파일 접근 차단, XSS 문자열 렌더링 테스트                                 |
 | SEC-02  | API 요청 빈도 제한                        | 검증 완료                  | 소켓 주소·경로별 60초당 30건, HTTP 429 및 Retry-After, 메모리 상한 테스트. 단일 프로세스 범위 |
 | AUTH-01 | 회원·BCrypt·세션 인증·권한·CSRF           | 미착수                     | DB와 회원 정책부터 필요. 현재 사용자 계정과 로그인 없음                                       |
-| DATA-01 | DB·마이그레이션·Mapper·트랜잭션·인덱스    | 부분 구현                  | V001 및 PGlite 제약·롤백 테스트 완료. 앱 DB 연결·Mapper·운영 복구 미완료                      |
+| DATA-01 | DB·마이그레이션·Mapper·트랜잭션·인덱스    | 부분 구현                  | V001·Spring Flyway·MyBatis 및 PostgreSQL 통합 테스트 완료. 회원 Service·운영 복구 미완료      |
 | OCR-01  | 진단서 OCR·사용자 수정·보관·삭제          | 미착수                     | 개인정보 처리 정책, 파일 검증, 저장소 접근 제어가 선행                                        |
 | COM-01  | 게시판·댓글·신고·관리자 처리              | 미착수                     | 인증·권한·DB가 선행                                                                           |
 | REV-01  | 병원 리뷰·수정·삭제·신고                  | 미착수                     | 안정적인 병원 식별자와 인증·권한이 선행                                                       |
 | OPS-01  | 테스트 및 GitHub Actions 구성             | 부분 구현                  | 로컬 테스트 통과. GitHub 원격 CI 실행 결과는 아직 확인하지 않음                               |
 | OPS-02  | 배포·TLS·모니터링·백업·로그 배치          | 미착수                     | 배포 대상, 민감정보 없는 로그 정책, 복구 기준 필요                                            |
 | FILE-01 | Cloudflare R2 이미지 저장/CDN             | 미착수                     | 버킷·권한·허용 형식·보존 정책 필요                                                            |
-| ARCH-01 | React/Spring Boot/MyBatis 계층 구조       | 설계 완료 / 이전 미착수    | ADR 001 작성. 실행 앱은 Node 프로토타입; 정확한 프레임워크 버전·빌드 검증 미완료              |
+| ARCH-01 | React/Spring Boot/MyBatis 계층 구조       | 부분 구현                  | Spring 3.5.16·MyBatis 3.0.5 및 Java 21 빌드 완료. 화면/기존 API 이전·React 미완료             |
 
 ## 우선순위와 완료 조건
 
@@ -53,22 +53,22 @@ P0-1이 차단되어도 P0-2와 P0-3의 설계는 진행할 수 있습니다. �
 
 ## 이번 작업 기록
 
-- 중단된 DB·AI 파일을 확인하고 테스트 재실행.
-- [아키텍처 결정과 API 초안](architecture/001-target.md): 목표 구조와 이전 순서 기록.
-- [DB 관계·정책·적용 절차](../db/README.md): 6개 테이블의 V001 SQL 및 PGlite 검증 추가.
-- [AI 응답 계약·평가 계획](ai/CONTRACT.md): 구조 검증기와 테스트 추가. 웹앱에 모델 연결은 하지 않음.
-- P0-2는 설계/SQL 검증 진행, 프레임워크 버전 고정·실제 PostgreSQL·실행기 준비가 남음.
-- P0-3은 응답 계약/평가 사례 준비, 제공자·모델 선정과 동의 UI 정의/구현이 남음.
-- 다음 구현: Spring 프로젝트 초기화 → Flyway/JDBC/MyBatis 연결 검증 → 회원 인증. 실제 병원 API는 기존 외부 설정이 준비되면 재검증.
+- backend/에 Java 21 + Spring Boot 3.5.16 + MyBatis 3.0.5 기반 추가.
+- Flyway가 원본 V001을 리소스로 읽어 적용하고 validate 및 재실행 시 중복 적용하지 않는지 검증.
+- 별도 PostgreSQL 17.11 프로세스로 JDBC/MyBatis 조회·중복 이메일·SQL 바인딩·롤백 검증.
+- Controller → Service → Mapper를 거치는 health API 구현. DB 장애 시 내부 정보를 숨긴 503 응답.
+- Maven 3.9.11 Wrapper와 체크섬 고정, 클라우드 재현 도우미, 별도 백엔드 CI 작업 추가.
+- P0-2의 백엔드 버전 고정과 로컬 DB 연결 검증 완료. React 이전·운영 DB 실행/복구 검증은 남음.
+- 다음: 기존 증상/병원 API 이전 → Spring Security 회원 인증. 실제 병원 데이터·AI 제공자 연결은 기존 차단 사항 유지.
 
 ## 검증 기록
 
-- 이전 기준: API/서비스 19개, 데스크톱·모바일 브라우저 10개 통과.
-- 이번 기준: 서버·서비스·DB·AI 계약 테스트 26개 로컬 통과. 추가 7개는 DB 4개, AI 계약 3개.
-- DB는 PGlite의 PostgreSQL 엔진으로 테스트. 별도 PostgreSQL 서버/JDBC/운영 백업 복구 검증이 아님.
-- 이번 변경은 실행 화면/API에 연결되지 않은 SQL·계약·문서 추가이며 브라우저 테스트는 이전 10개 통과 기록을 유지. 이번에는 재실행하지 않음.
-- 실제 병원 제공기관, 모델 호출/의료 정확성, GitHub 원격 CI 및 배포는 검증하지 않음.
-- 재현: npm run check, npm run format:check, npm test. 브라우저: npm run test:e2e.
+- 기존 Node 서버·서비스·DB·AI 계약: 26개 통과 기록. 이번에도 회귀 테스트 실행.
+- Spring: PostgreSQL 통합 4개, MVC 장애 응답 3개, 총 7개 통과. 실행 jar 패키징 확인.
+- PostgreSQL 17.11은 테스트용 임시 로컬 프로세스이며 운영 DB가 아님.
+- 현재 클라우드는 ct.sym 없는 Java 21이므로 source/target 21로 빌드. 기본 CI는 표준 JDK 21에서 --release 21 사용. 원격 CI 실행 결과는 미확인.
+- 이번 변경은 기존 Node 화면을 바꾸지 않음. 브라우저는 이전 10개 통과 기록이며 이번에는 재실행하지 않음.
+- 재현: npm test, npm run check, npm run format:check; 백엔드 표준 JDK는 cd backend 후 ./mvnw verify, 클라우드는 python backend/cloud_maven.py verify.
 
 ## 요청 제한 운영상의 범위
 

@@ -6,7 +6,7 @@
 
 원래 요구사항에 맞춰 목표 구조는 React/TypeScript 프론트엔드, Java 21 + Spring Boot/Spring Security 백엔드, MyBatis, PostgreSQL, Flyway로 정합니다. 지금 실행되는 Node.js 프로토타입은 API와 사용자 흐름의 회귀 검증 기준으로 유지합니다. 회원 기능을 Node와 Spring 양쪽에 중복 구현하지 않습니다.
 
-이번 작업은 SQL과 계약 검증까지입니다. Spring·React 프로젝트, Mapper, 세션 인증, 운영 PostgreSQL 연결은 아직 없습니다. Spring Boot·MyBatis·React의 정확한 버전은 실제 프로젝트 초기화 시 호환성과 지원 상태를 확인하고 잠금 파일/빌드 파일에 고정합니다. 따라서 기존 P0-2의 버전 고정·실행 검증 완료 조건은 아직 충족되지 않았습니다.
+Spring 백엔드 골격과 MyBatis Mapper, Flyway, PostgreSQL 프로세스 통합 검증을 추가했습니다. Java 21, Spring Boot 3.5.16, MyBatis Starter 3.0.5, Maven 3.9.11, 테스트 PostgreSQL 17.11로 고정했습니다. 실행 방법은 [백엔드 문서](../../backend/README.md)에 있습니다. 현재 Spring API는 health만 제공하며 React 이전·회원 인증·운영 DB 연결은 아직 없습니다. React 버전과 빌드는 해당 이전 단계에서 고정합니다.
 
 ## 경계
 

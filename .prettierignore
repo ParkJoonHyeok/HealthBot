@@ -2,3 +2,7 @@ node_modules
 package-lock.json
 test-results
 playwright-report
+backend/target/
+backend/mvnw
+backend/mvnw.cmd
+backend/.cache/

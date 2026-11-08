@@ -1,6 +1,6 @@
 # 데이터베이스 설계 및 검증
 
-`migrations/V001__core.sql`은 초기 스키마입니다. 앱에는 아직 DB 연결이 없습니다. 현재 검증 도구는 devDependency인 PGlite이며 Node 서버가 런타임 DB로 사용하는 것이 아닙니다.
+`migrations/V001__core.sql`은 초기 스키마입니다. Node 앱에는 DB 연결이 없습니다. 별도 Spring 백엔드에는 PostgreSQL 연결·Flyway·MyBatis를 추가했습니다. Node 테스트의 devDependency인 PGlite는 런타임 DB로 사용하는 것이 아닙니다.
 
 ## 관계
 
@@ -42,7 +42,9 @@ node --test test/database.test.js
 
 빈 인메모리 PostgreSQL 엔진에 SQL을 적용하고 이메일/리뷰 중복, 평점 범위, 외래키, 신고 상태, 트랜잭션 롤백을 검증합니다. PGlite 버전은 package-lock.json에 고정됩니다. 테스트 종료 시 DB를 닫으며 외부 DB·실제 회원 데이터는 건드리지 않습니다.
 
-## 후속 PostgreSQL 적용 절차 — 아직 실행하지 않음
+## 별도 PostgreSQL 검증 및 운영 적용
+
+Spring 통합 테스트에서 임시 PostgreSQL 17.11에 V001 적용, Flyway 재실행, JDBC/MyBatis 조회 및 트랜잭션 롤백을 확인했습니다. [백엔드 실행 문서](../backend/README.md)를 참고하세요. 다음 절차는 운영 DB에 대해 아직 수행하지 않았습니다.
 
 1. 서비스와 분리된 새 개발 DB와 최소 권한 사용자를 준비합니다. 접속 정보는 환경변수나 비밀 설정으로 제공합니다.
 2. Spring 프로젝트에서 Flyway의 마이그레이션 경로를 이 디렉터리로 연결하거나 원본을 유지하는 리소스 복사 단계를 구성합니다.
@@ -50,4 +52,4 @@ node --test test/database.test.js
 4. JDBC·MyBatis 통합 테스트, 동시 중복 요청, 권한과 트랜잭션 테스트를 실행합니다.
 5. 운영 적용 전 백업·복구와 스키마 변경 절차를 검증합니다.
 
-V001은 한 번만 적용하는 forward-only 마이그레이션입니다. 적용된 파일을 수정하지 않고 후속 변경은 V002 이후로 추가합니다. 기존 테이블을 지우는 reset 명령은 제공하지 않습니다. 운영 Flyway 실행기·복구 절차는 아직 구현하지 않았습니다.
+V001은 한 번만 적용하는 forward-only 마이그레이션입니다. 적용된 파일을 수정하지 않고 후속 변경은 V002 이후로 추가합니다. 기존 테이블을 지우는 reset 명령은 제공하지 않습니다. Spring Flyway 실행은 구성했지만 운영 계정 분리·백업·복구 절차는 아직 검증하지 않았습니다.
