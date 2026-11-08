@@ -19,8 +19,10 @@
   <build>
     <resources>
       <resource><directory>src/main/resources</directory></resource>
+      <resource><directory>${project.basedir}/../public</directory><targetPath>static</targetPath></resource>
       <resource><directory>${project.basedir}/../db/migrations</directory><targetPath>db/migration</targetPath><includes><include>*.sql</include></includes></resource>
     </resources>
+    <testResources><testResource><directory>src/test/resources</directory></testResource><testResource><directory>${project.basedir}/../contracts</directory><targetPath>contracts</targetPath></testResource></testResources>
     <plugins><plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin></plugins>
   </build>
 </project>

@@ -86,4 +86,4 @@ npm run test:e2e
 - [DB 스키마·관계·검증 절차](db/README.md)
 - [AI 응답 계약·평가 계획](docs/ai/CONTRACT.md)
 
-Node 프로토타입에는 DB나 AI가 연결되지 않았습니다. 별도 [Spring 백엔드](backend/README.md)는 Flyway·MyBatis·PostgreSQL 통합 테스트와 health API를 제공합니다. 회원 인증과 기존 API 이전은 아직 미완료입니다.
+Node 프로토타입에는 DB나 AI가 연결되지 않았습니다. 별도 [Spring 백엔드](backend/README.md)는 Flyway·MyBatis·PostgreSQL 연결과 기존 화면·증상 안내·병원 검색 API를 제공합니다. 회원 인증과 React 이전은 아직 미완료입니다.

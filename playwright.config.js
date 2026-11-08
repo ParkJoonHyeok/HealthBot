@@ -1,9 +1,11 @@
 import { defineConfig } from "@playwright/test";
+const spring = process.env.HEALBOT_BACKEND === "spring";
+const baseURL = spring ? "http://127.0.0.1:3101" : "http://127.0.0.1:3100";
 export default defineConfig({
   testDir: "./test/browser",
   fullyParallel: true,
   use: {
-    baseURL: "http://127.0.0.1:3100",
+    baseURL,
     headless: true,
     launchOptions: {
       executablePath: process.env.CHROMIUM_PATH || undefined,
@@ -11,9 +13,12 @@ export default defineConfig({
     },
   },
   webServer: {
-    command: "node src/server.js",
-    url: "http://127.0.0.1:3100/api/health",
-    env: { PORT: "3100", HOSPITAL_DEMO: "true" },
+    command: spring
+      ? "python backend/cloud_maven.py spring-boot:test-run -Dspring-boot.run.main-class=kr.healbot.BrowserTestApplication"
+      : "node src/server.js",
+    url: baseURL + "/api/health",
+    timeout: 120000,
+    env: { PORT: "3100", BACKEND_PORT: "3101", HOSPITAL_DEMO: "true" },
     reuseExistingServer: false,
   },
   projects: [

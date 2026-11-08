@@ -1,6 +1,6 @@
 # Spring 백엔드
 
-현재 범위: Controller → Service → MyBatis → PostgreSQL 연결 기반, Flyway V001 적용, 회원 Mapper의 파라미터 바인딩. 웹앱의 증상/병원 검색 API와 회원 인증은 아직 이 서버로 이전하지 않았습니다.
+현재 범위: Controller → Service → MyBatis → PostgreSQL 연결 기반, Flyway V001 적용, 회원 Mapper의 파라미터 바인딩. 기존 증상 안내·병원 검색 API와 public/ 화면을 함께 제공합니다. 회원 인증은 아직 구현하지 않았습니다.
 
 ## 고정된 도구
 
@@ -20,7 +20,7 @@ cd backend
 
 Linux 비관리자 계정에서 테스트합니다. 테스트가 별도 PostgreSQL 프로세스를 임시 디렉터리와 임의 포트로 시작하고 종료하므로 외부 DB와 Docker가 필요하지 않습니다. 테스트용 로컬 DB는 trust 인증을 사용하며 운영 설정으로 사용하면 안 됩니다. 처음 실행할 때 Maven Central에서 도구·의존성·플랫폼 바이너리를 받습니다.
 
-통합 테스트는 V001 적용 및 재실행 시 중복 적용 방지, MyBatis 바인딩/중복 이메일, Spring 트랜잭션 롤백, 실제 HTTP health 응답을 확인합니다. 별도 MVC 테스트는 DB 오류에 대해 연결 정보 없는 503 응답을 검증합니다.
+통합 테스트는 V001 적용 및 재실행 시 중복 적용 방지, MyBatis 바인딩/중복 이메일, Spring 트랜잭션 롤백, 실제 HTTP health 응답을 확인합니다. MVC 테스트는 입력·JSON·용량·검색 조건과 DB 오류를 검사합니다. 병원 어댑터는 로컬 모의 HTTP 서버로 URL 인코딩·리다이렉트 거부를 검증하며, XML의 외부 엔티티/DTD를 차단합니다. 실제 공공 API 검증은 아직 미완료입니다.
 
 ## 이 클라우드 환경
 
@@ -56,8 +56,25 @@ db/migrations를 Maven 리소스로 복사하므로 SQL 원본은 하나입니�
 
 ## 남은 작업
 
-- 기존 증상/병원 API와 입력 검증·요청 제한을 Spring으로 이전
 - Spring Security, 회원 Service/Controller, BCrypt, 세션·CSRF·권한 검증
 - React 이전, 운영 DB·배포·복구 검증
 
 Node 프로토타입은 루트에서 npm start로 계속 실행됩니다. 이번 작업은 Spring 기반의 검증 가능한 출발점이며 전체 앱 이전이나 공개 서비스 배포가 아닙니다.
+
+## 화면과 API 이전 검증
+
+Maven이 루트 public/을 정적 리소스로 복사합니다. 프론트 소스는 한 벌이며 React로 전환한 것은 아닙니다. Spring 경로는 GET /api/health, POST /api/guide, GET /api/hospitals입니다. 증상은 계속 규칙 기반입니다. 병원 조회는 HOSPITAL_DEMO=true이면 명시적인 가상 샘플이며, false이면 HOSPITAL_API_KEY가 필요합니다. 키가 없으면 503과 지도 검색 대안을 표시합니다.
+
+Spring의 외부 병원 연결은 HTTPS_PROXY/https_proxy와 NO_PROXY/no_proxy의 호스트/도메인 항목을 사용합니다. 프록시 URL에 인증정보가 있거나 HTTP CONNECT 프록시가 아닌 경우는 지원하지 않습니다. NO_PROXY의 CIDR·포트별 규칙은 구현하지 않았습니다. TLS 검증과 인증키의 서버 측 보관을 유지합니다. 입력 본문 8KiB, 병원 응답 1MiB, 연결·읽기 타임아웃을 적용합니다.
+
+주소·API 경로별 60초당 30회 제한과 Retry-After, 최대 10,000개 기록을 사용합니다. 전달된 클라이언트 IP 헤더를 신뢰하지 않으며 프로세스 재시작 시 제한이 초기화됩니다. 역방향 프록시/분산 운영에 필요한 정책은 별도 작업입니다.
+
+루트에서 브라우저 테스트를 실행합니다. 테스트 전용 main 클래스가 임시 DB와 Spring을 띄우고 종료합니다. 운영 JAR에는 이 클래스나 PostgreSQL 바이너리가 포함되지 않습니다.
+
+```sh
+HEALBOT_BACKEND=spring npm run test:e2e
+# 이 환경의 설치된 브라우저 사용
+HEALBOT_BACKEND=spring CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e
+```
+
+기존 Node 검증은 npm run test:e2e로 유지됩니다. 3100(Node) / 3101(Spring) 포트를 각각 사용합니다. contracts/guide.json으로 두 구현의 대표 응답을 비교하며 이 데이터는 의학적 정답이 아닙니다. 자세한 제한은 contracts/README.md를 참고하세요.

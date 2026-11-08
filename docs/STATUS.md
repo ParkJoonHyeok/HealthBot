@@ -27,7 +27,7 @@
 | OPS-01  | 테스트 및 GitHub Actions 구성             | 부분 구현                  | 로컬 테스트 통과. GitHub 원격 CI 실행 결과는 아직 확인하지 않음                               |
 | OPS-02  | 배포·TLS·모니터링·백업·로그 배치          | 미착수                     | 배포 대상, 민감정보 없는 로그 정책, 복구 기준 필요                                            |
 | FILE-01 | Cloudflare R2 이미지 저장/CDN             | 미착수                     | 버킷·권한·허용 형식·보존 정책 필요                                                            |
-| ARCH-01 | React/Spring Boot/MyBatis 계층 구조       | 부분 구현                  | Spring 3.5.16·MyBatis 3.0.5 및 Java 21 빌드 완료. 화면/기존 API 이전·React 미완료             |
+| ARCH-01 | React/Spring Boot/MyBatis 계층 구조       | 부분 구현                  | Spring에 기존 화면·증상/병원 API 이전 및 브라우저 검증 완료. React·회원 인증 미완료           |
 
 ## 우선순위와 완료 조건
 
@@ -53,22 +53,21 @@ P0-1이 차단되어도 P0-2와 P0-3의 설계는 진행할 수 있습니다. �
 
 ## 이번 작업 기록
 
-- backend/에 Java 21 + Spring Boot 3.5.16 + MyBatis 3.0.5 기반 추가.
-- Flyway가 원본 V001을 리소스로 읽어 적용하고 validate 및 재실행 시 중복 적용하지 않는지 검증.
-- 별도 PostgreSQL 17.11 프로세스로 JDBC/MyBatis 조회·중복 이메일·SQL 바인딩·롤백 검증.
-- Controller → Service → Mapper를 거치는 health API 구현. DB 장애 시 내부 정보를 숨긴 503 응답.
-- Maven 3.9.11 Wrapper와 체크섬 고정, 클라우드 재현 도우미, 별도 백엔드 CI 작업 추가.
-- P0-2의 백엔드 버전 고정과 로컬 DB 연결 검증 완료. React 이전·운영 DB 실행/복구 검증은 남음.
-- 다음: 기존 증상/병원 API 이전 → Spring Security 회원 인증. 실제 병원 데이터·AI 제공자 연결은 기존 차단 사항 유지.
+- POST /api/guide, GET /api/hospitals와 루트 public/ 화면을 Spring에 연결.
+- 기존 JSON 응답, 응급 우선 안내, 샘플/실제 모드 구분 및 400/413/415/429/502/503 처리 구현.
+- 8KiB 입력 제한, 1MiB 외부 응답 제한, 외부 XML 엔티티/DTD 차단, 주소·경로별 요청 제한 이전.
+- 전달 헤더와 인코딩된 경로로 요청 제한이 초기화되지 않는지 검증.
+- 공통 계약 fixture로 Node/Spring 증상 안내 결과 비교. 기존 키워드 방식의 부정 표현 오탐도 문서에 명시.
+- Spring+임시 PostgreSQL 서버로 기존 데스크톱·모바일 브라우저 테스트 실행. 백엔드 CI에 추가.
+- 다음: Spring Security 기반 회원가입·로그인·로그아웃·세션·CSRF 구현. AI·실제 병원 데이터·React는 여전히 미완료.
 
 ## 검증 기록
 
-- 기존 Node 서버·서비스·DB·AI 계약: 26개 통과 기록. 이번에도 회귀 테스트 실행.
-- Spring: PostgreSQL 통합 4개, MVC 장애 응답 3개, 총 7개 통과. 실행 jar 패키징 확인.
-- PostgreSQL 17.11은 테스트용 임시 로컬 프로세스이며 운영 DB가 아님.
-- 현재 클라우드는 ct.sym 없는 Java 21이므로 source/target 21로 빌드. 기본 CI는 표준 JDK 21에서 --release 21 사용. 원격 CI 실행 결과는 미확인.
-- 이번 변경은 기존 Node 화면을 바꾸지 않음. 브라우저는 이전 10개 통과 기록이며 이번에는 재실행하지 않음.
-- 재현: npm test, npm run check, npm run format:check; 백엔드 표준 JDK는 cd backend 후 ./mvnw verify, 클라우드는 python backend/cloud_maven.py verify.
+- Spring 테스트 18개: DB/HTTP/MVC, 증상 계약, 입력 검증, 병원 XML·로컬 HTTP 어댑터·프록시, 요청 제한. 실행 jar 패키징 성공.
+- Spring 브라우저 테스트 10개 통과(데스크톱·모바일). 샘플 서버 및 일부 모의 응답을 사용하며 실제 의료기관 API 검증은 아님.
+- Node 테스트는 공통 계약 테스트를 추가해 27개. 기존 Node 브라우저도 같은 설정 변경 후 재검증.
+- 실제 공공 API·AI 호출·운영 DB·배포·원격 CI 결과는 미확인.
+- 현재 클라우드 Java 21의 ct.sym 부재는 cloud_maven.py의 source/target 21 옵션으로 대응. 기본 CI는 표준 JDK 21 사용.
 
 ## 요청 제한 운영상의 범위
 
