@@ -79,3 +79,11 @@ npm run test:e2e
 5. 커뮤니티·리뷰의 권한·신고·운영 정책 구현.
 
 현재는 Node.js와 브라우저 표준 API 기반입니다. React/Spring Boot, DB, 회원, OCR, 커뮤니티, 리뷰는 아직 구현하지 않았습니다. 공개 서비스 출시 전에는 TLS, 배포 구조에 맞는 분산 요청 제한, 운영 모니터링, 의료 콘텐츠 검토가 필요합니다.
+
+## 설계 및 후속 구현
+
+- [목표 아키텍처·API 초안](docs/architecture/001-target.md)
+- [DB 스키마·관계·검증 절차](db/README.md)
+- [AI 응답 계약·평가 계획](docs/ai/CONTRACT.md)
+
+초기 SQL과 AI 구조 검증기는 테스트용 기반 코드이며 현재 앱에 DB나 AI가 연결된 것은 아닙니다.
